@@ -108,7 +108,11 @@ struct display_buffer_descriptor {
 	/** Number of pixels between consecutive rows in the data buffer */
 	uint16_t pitch;
 };
-
+/**
+ * @typedef display_update_ext_power_api
+ * @brief Callback API to manually update display power state
+ */
+typedef int (*display_update_ext_power_api)(const struct device *dev, bool enabled);
 /**
  * @typedef display_blanking_on_api
  * @brief Callback API to turn on display blanking
@@ -198,6 +202,7 @@ typedef int (*display_set_orientation_api)(const struct device *dev,
  * API which a display driver should expose
  */
 struct display_driver_api {
+	display_update_ext_power_api update_ext_power;
 	display_blanking_on_api blanking_on;
 	display_blanking_off_api blanking_off;
 	display_write_api write;
@@ -209,6 +214,14 @@ struct display_driver_api {
 	display_set_pixel_format_api set_pixel_format;
 	display_set_orientation_api set_orientation;
 };
+static inline int display_update_ext_power(const struct device *dev, bool enabled)
+{
+	struct display_driver_api *api =
+		(struct display_driver_api *)dev->api;
+
+	return api->update_ext_power(dev, enabled);
+}
+
 
 /**
  * @brief Write data to display
